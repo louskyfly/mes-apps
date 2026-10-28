@@ -14,8 +14,8 @@ mes-apps\
 │   ├── icon-180.png            icône iPad / iPhone
 │   ├── icon-192.png            icône Android / favicon
 │   └── icon-512.png            icône haute résolution
-├── firebase.json               config Firebase Hosting
-├── .firebaserc                 -> l'ID de ton projet Firebase
+├── .github\workflows\pages.yml publication automatique sur GitHub Pages
+├── firebase.json               config Firebase Hosting (alternative)
 ├── demarrer.cmd                aperçu local (double-clic)
 └── README.md                   ce fichier
 ```
@@ -44,47 +44,55 @@ Double-clique `demarrer.cmd` → <http://127.0.0.1:8765>.
 Ou ouvre `public/index.html` directement (le manifeste et les icônes ne sont
 alors pas lus, ce qui n'a aucune importance sur PC).
 
-## Mettre en ligne sur Firebase Hosting
+## Mettre en ligne
 
-### 1. Créer le projet (une seule fois, dans le navigateur)
+### GitHub Pages (déjà en place)
 
-1. <https://console.firebase.google.com> → **Créer un projet**.
-2. Nom : `mes-apps` (peu importe). L'**ID du projet** est affiché en dessous,
-   du genre `mes-apps-a1b2c` — c'est lui qui donnera l'adresse du site :
-   `https://mes-apps-a1b2c.web.app`.
-3. Google Analytics : inutile, tu peux le désactiver.
+Le site est publié automatiquement à chaque `git push` sur `main`, par le
+workflow `.github/workflows/pages.yml` qui publie le dossier `public/`.
 
-### 2. Renseigner l'ID
+**Adresse : <https://louskyfly.github.io/mes-apps/>**
+Dépôt : <https://github.com/louskyfly/mes-apps>
 
-Ouvre `.firebaserc` et remplace `TON-PROJET-ID` :
-
-```json
-{ "projects": { "default": "mes-apps-a1b2c" } }
-```
-
-### 3. Publier
+Pour mettre à jour :
 
 ```powershell
 cd C:\Users\sanch\mes-apps
-firebase login            # une seule fois, ouvre le navigateur
-firebase deploy --only hosting
+git add -A
+git commit -m "mise a jour"
+git push
 ```
 
-La commande affiche à la fin :
+Compter une minute, puis la page est à jour.
 
-```
-Hosting URL: https://mes-apps-a1b2c.web.app
-```
+### Firebase Hosting (alternative)
 
-### 4. Mettre l'app sur l'iPad
+Le dossier est aussi prêt pour Firebase, si tu préfères un domaine `.web.app` :
 
-1. Ouvre cette adresse dans **Safari** (pas Chrome : sur iPad, seul Safari sait
+1. Récupère l'**ID du projet** sur <https://console.firebase.google.com>
+   (du genre `mes-apps-a1b2c`, ce qui donnera
+   `https://mes-apps-a1b2c.web.app`).
+2. Écris-le dans `.firebaserc` :
+
+   ```json
+   { "projects": { "default": "mes-apps-a1b2c" } }
+   ```
+
+3. Publie :
+
+   ```powershell
+   cd C:\Users\sanch\mes-apps
+   firebase login            # une seule fois, ouvre le navigateur
+   firebase deploy --only hosting
+   ```
+
+### Mettre l'app sur l'iPad
+
+1. Ouvre l'adresse dans **Safari** (pas Chrome : sur iPad, seul Safari sait
    créer un raccourci web) — et vérifie qu'elle n'est pas filtrée par le lycée.
 2. Bouton **Partager** → **Sur l'écran d'accueil** → *Ajouter*.
 
 La page s'ouvre ensuite en plein écran, avec l'icône et le nom « Mes apps ».
-Après une modification : relance `firebase deploy --only hosting`, puis
-rouvre la page sur l'iPad.
 
 ## Ce que cette page ne peut pas faire
 
