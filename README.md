@@ -26,17 +26,39 @@ Dans `public/index.html`, vers le milieu du fichier :
 
 ```js
 const APPS = [
-  { name: "YouTube",  url: "https://www.youtube.com/",  icon: "youtube"  },
-  { name: "AnyDesk",  url: "https://anydesk.com/fr",    icon: "anydesk"  },
-  { name: "OpenCode", url: "https://opencode.ai/",      icon: "opencode" },
-  { name: "Arc",      url: "https://arc.net/",          icon: "arc"      },
+  { name: "YouTube",   url: "https://www.youtube.com/",     icon: "youtube",   embed: false },
+  { name: "AnyDesk",   url: "https://anydesk.com/fr",       icon: "anydesk",   embed: false },
+  { name: "WhatsApp",  url: "https://web.whatsapp.com/",    icon: "whatsapp",  embed: false },
+  { name: "Instagram", url: "https://www.instagram.com/",   icon: "instagram", embed: false },
 ];
 ```
 
 - **Ajouter une app** : copie une ligne, change `name` et `url`.
 - **Retirer une app** : supprime la ligne.
-- `icon` peut être `youtube`, `anydesk`, `opencode`, `arc` ou `web`.
+- `icon` peut être `youtube`, `anydesk`, `whatsapp`, `instagram` ou `web`.
   Si tu mets autre chose, la tuile affiche la première lettre du nom.
+- `embed: true` affiche le site **dans** la page. `embed: false` (YouTube,
+  AnyDesk, WhatsApp, Instagram : tous les quatre refusent) affiche un message
+  dans la page, avec un bouton pour ouvrir le site.
+
+## Ouvrir une app « dans la page » : ce qui est possible
+
+Un site ne peut être affiché dans un cadre (`<iframe>`) que si **son serveur
+l'autorise**. Trois des quatre apps qui t'intéressent envoient un refus
+explicite, que le navigateur applique sans discussion :
+
+| Site | En-tête envoyé | Affichage intégré |
+| --- | --- | --- |
+| youtube.com | `X-Frame-Options: SAMEORIGIN` | non |
+| anydesk.com | `X-Frame-Options: SAMEORIGIN` | non |
+| web.whatsapp.com | `CSP: frame-ancestors *.whatsapp.com` | non |
+| instagram.com | `X-Frame-Options: DENY` | non |
+
+Aucune page web ne peut contourner ça : c'est le serveur du site qui décide,
+pas le navigateur. La seule façon d'afficher ces sites dans ta page serait un
+serveur intermédiaire qui télécharge les pages et les réécrit — un proxy. Ça
+sort du cadre d'un simple site et ça revient à contourner le filtrage réseau
+du lycée.
 
 ## Aperçu local
 

@@ -22,21 +22,26 @@
     --stroke:#26262e;
     --fg:#f4f4f6;
     --muted:#7d7d8a;
+    --bar:#101014;
   }
 
   *{ box-sizing:border-box; }
 
+  [hidden]{ display:none !important; }
+
+  :focus-visible{ outline:2px solid #6ea8ff; outline-offset:3px; }
+
   html,body{
     margin:0;
+    height:100%;
     background:var(--bg);
     color:var(--fg);
     font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-text-size-adjust:100%;
+    overscroll-behavior:none;
   }
 
   body{
-    min-height:100vh;
-    min-height:100dvh;
     display:flex;
     flex-direction:column;
     padding:
@@ -92,7 +97,6 @@
   @media (min-width:900px){ .grid{ grid-template-columns:repeat(5, minmax(0,1fr)); } }
 
   .tile{
-    position:relative;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -104,7 +108,8 @@
     border-radius:22px;
     background:var(--card);
     color:var(--fg);
-    text-decoration:none;
+    font:inherit;
+    cursor:pointer;
     transition:transform .12s ease, background .12s ease, border-color .12s ease;
   }
 
@@ -137,8 +142,6 @@
     overflow-wrap:anywhere;
   }
 
-  /* ---------- pied ---------- */
-
   footer{
     margin:auto auto 0;
     padding-top:40px;
@@ -151,8 +154,160 @@
 
   footer b{ color:#a9a9b8; font-weight:560; }
 
+  /* ---------- lecteur intégré ---------- */
+
+  #viewer{
+    position:fixed;
+    inset:0;
+    z-index:10;
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
+    transform:translateX(100%);
+    transition:transform .22s cubic-bezier(.32,.72,0,1);
+    visibility:hidden;
+  }
+
+  #viewer.open{
+    transform:none;
+    visibility:visible;
+  }
+
+  .bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:none;
+    padding:
+      calc(8px + env(safe-area-inset-top))
+      calc(10px + env(safe-area-inset-right))
+      8px
+      calc(10px + env(safe-area-inset-left));
+    background:var(--bar);
+    border-bottom:1px solid var(--stroke);
+  }
+
+  .btn{
+    display:grid;
+    place-items:center;
+    width:36px;
+    height:36px;
+    flex:none;
+    border:0;
+    border-radius:10px;
+    background:#1c1c22;
+    color:var(--fg);
+    font-size:1.1rem;
+    text-decoration:none;
+    cursor:pointer;
+  }
+
+  .btn:active{ background:#2a2a33; }
+
+  .bar .title{
+    flex:1;
+    min-width:0;
+    font-size:0.95rem;
+    font-weight:560;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-align:center;
+  }
+
+  #frame{
+    flex:1;
+    width:100%;
+    border:0;
+    background:#fff;
+  }
+
+  /* message "ce site refuse l'affichage intégré" */
+
+  .note{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:32px 28px calc(32px + env(safe-area-inset-bottom));
+    text-align:center;
+    overflow-y:auto;
+  }
+
+  .note svg, .note .letter{ width:56px; height:56px; }
+
+  .note .letter{
+    display:grid;
+    place-items:center;
+    border-radius:14px;
+    background:#22222a;
+    font-size:1.5rem;
+    font-weight:600;
+  }
+
+  .note h2{
+    margin:0;
+    font-size:1.15rem;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+
+  .note p{
+    margin:0;
+    max-width:34ch;
+    font-size:0.92rem;
+    line-height:1.55;
+    color:var(--muted);
+  }
+
+  .note code{
+    font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size:0.85em;
+    color:#b9b9c8;
+    background:#1c1c22;
+    padding:2px 6px;
+    border-radius:6px;
+  }
+
+  .actions{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:100%;
+    max-width:320px;
+    margin-top:8px;
+  }
+
+  .primary{
+    display:block;
+    padding:14px 18px;
+    border-radius:14px;
+    background:#f4f4f6;
+    color:#0a0a0c;
+    font-size:0.95rem;
+    font-weight:600;
+    text-decoration:none;
+    text-align:center;
+  }
+
+  .secondary{
+    display:block;
+    padding:13px 18px;
+    border:1px solid var(--stroke);
+    border-radius:14px;
+    background:transparent;
+    color:var(--fg);
+    font:inherit;
+    font-size:0.95rem;
+    text-align:center;
+    cursor:pointer;
+  }
+
   @media (prefers-reduced-motion:reduce){
     .tile{ transition:none; }
+    #viewer{ transition:none; }
   }
 </style>
 </head>
@@ -170,11 +325,34 @@
   pour l'avoir comme une app.
 </footer>
 
+<!-- ================= lecteur intégré ================= -->
+
+<section id="viewer" aria-hidden="true">
+  <div class="bar">
+    <button class="btn" id="back" type="button" aria-label="Retour">‹</button>
+    <span class="title" id="vtitle"></span>
+    <a class="btn" id="vopen" href="#" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir dans Safari">↗</a>
+  </div>
+
+  <iframe id="frame" title="" referrerpolicy="no-referrer" hidden></iframe>
+
+  <div class="note" id="vnote" hidden>
+    <div id="vicon"></div>
+    <h2 id="vname"></h2>
+    <p id="vwhy"></p>
+    <div class="actions">
+      <a class="primary" id="vgo" href="#" target="_blank" rel="noopener noreferrer">Ouvrir dans un onglet</a>
+      <button class="secondary" id="vback2" type="button">Retour aux apps</button>
+    </div>
+  </div>
+</section>
+
 <script>
 /* ============================================================
    LA LISTE DES APPS
-   Pour ajouter une app : copie une ligne et change name + url.
-   Pour en retirer une : supprime la ligne.
+   embed: true  -> le site s'affiche DANS la page
+   embed: false -> le site interdit l'affichage intégré,
+                   un message s'affiche dans la page
    ============================================================ */
 
 const ICONS = {
@@ -188,23 +366,25 @@ const ICONS = {
     <path d="M12 5.9l5.7 11.6h-3.35L12 12.1l-2.35 5.4H6.3z" fill="#fff"/>
   </svg>`,
 
-  opencode: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="1.6" y="1.6" width="20.8" height="20.8" rx="5.4" fill="#131316" stroke="#2e2e38" stroke-width="1"/>
-    <path d="M6.9 8.4l3.5 3.6-3.5 3.6" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M12.6 15.6h4.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/>
+  whatsapp: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="1.6" y="1.6" width="20.8" height="20.8" rx="5.6" fill="#25D366"/>
+    <path d="M12 5.6a6.2 6.2 0 00-5.3 9.4l-.9 3.5 3.6-.9A6.2 6.2 0 1012 5.6z" fill="#fff"/>
+    <path d="M9.9 8.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5 0-.7.3-.2.3-.8.8-.8 2s.8 2.3 1 2.5c.2.2 1.6 2.5 3.9 3.4 1.9.7 2.3.6 2.7.5.4 0 1.3-.5 1.5-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3l-1.4-.7c-.2-.1-.3-.1-.5.1l-.6.8c-.1.2-.3.2-.5.1-.7-.3-1.2-.6-1.7-1.1-.4-.4-.8-.9-1-1.4-.1-.2 0-.3.1-.4l.4-.5c.1-.2.1-.3 0-.5z" fill="#25D366"/>
   </svg>`,
 
-  arc: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  instagram: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <defs>
-      <linearGradient id="arcGrad" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stop-color="#FF5C8A"/>
-        <stop offset=".5" stop-color="#8B5CFF"/>
-        <stop offset="1" stop-color="#37C6FF"/>
+      <linearGradient id="igGrad" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#FEDA75"/>
+        <stop offset=".3" stop-color="#FA7E1E"/>
+        <stop offset=".6" stop-color="#D62976"/>
+        <stop offset="1" stop-color="#962FBF"/>
       </linearGradient>
     </defs>
-    <rect x="1.6" y="1.6" width="20.8" height="20.8" rx="5.6" fill="url(#arcGrad)"/>
-    <path d="M6.6 16.9a5.6 5.6 0 019.9-3.6" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>
-    <circle cx="16.5" cy="15.1" r="1.5" fill="#fff"/>
+    <rect x="1.6" y="1.6" width="20.8" height="20.8" rx="6" fill="url(#igGrad)"/>
+    <rect x="6.1" y="6.1" width="11.8" height="11.8" rx="3.7" stroke="#fff" stroke-width="1.7"/>
+    <circle cx="12" cy="12" r="2.9" stroke="#fff" stroke-width="1.7"/>
+    <circle cx="16.1" cy="7.9" r="1.05" fill="#fff"/>
   </svg>`,
 
   web: `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -215,42 +395,108 @@ const ICONS = {
 };
 
 const APPS = [
-  { name: "YouTube",  url: "https://www.youtube.com/",  icon: "youtube"  },
-  { name: "AnyDesk",  url: "https://anydesk.com/fr",    icon: "anydesk"  },
-  { name: "OpenCode", url: "https://opencode.ai/",      icon: "opencode" },
-  { name: "Arc",      url: "https://arc.net/",          icon: "arc"      },
+  { name: "YouTube",   url: "https://www.youtube.com/",     icon: "youtube",   embed: false },
+  { name: "AnyDesk",   url: "https://anydesk.com/fr",       icon: "anydesk",   embed: false },
+  { name: "WhatsApp",  url: "https://web.whatsapp.com/",    icon: "whatsapp",  embed: false },
+  { name: "Instagram", url: "https://www.instagram.com/",   icon: "instagram", embed: false },
 ];
 
 /* ============================================================
    Rendu (pas besoin d'y toucher)
    ============================================================ */
 
-const grid = document.getElementById("grid");
+const grid    = document.getElementById("grid");
+const viewer  = document.getElementById("viewer");
+const frame   = document.getElementById("frame");
+const vnote   = document.getElementById("vnote");
+const vtitle  = document.getElementById("vtitle");
+const vopen   = document.getElementById("vopen");
+
+function iconFor(app){
+  return ICONS[app.icon] || `<div class="letter">${app.name.slice(0, 1)}</div>`;
+}
+
+/* --- tuiles --- */
 
 for (const app of APPS) {
-  if (!app.url) continue;
-
-  const a = document.createElement("a");
-  a.className = "tile";
-  a.href = app.url;
-  a.target = "_blank";
-  a.rel = "noopener noreferrer";
-  a.setAttribute("aria-label", app.name);
-
-  a.innerHTML = ICONS[app.icon] || `<div class="letter">${app.name.slice(0, 1)}</div>`;
+  const tile = document.createElement("button");
+  tile.type = "button";
+  tile.className = "tile";
+  tile.setAttribute("aria-label", app.name);
+  tile.innerHTML = iconFor(app);
 
   const label = document.createElement("span");
   label.className = "name";
   label.textContent = app.name;
-  a.appendChild(label);
+  tile.appendChild(label);
 
-  grid.appendChild(a);
+  tile.addEventListener("click", () => openApp(app));
+  grid.appendChild(tile);
 }
 
-/* petite horloge, pour que ça ressemble à un vrai lanceur */
+/* --- ouverture dans la page --- */
+
+let current = null;
+
+function openApp(app){
+  current = app;
+
+  vtitle.textContent = app.name;
+  vopen.href = app.url;
+  vopen.setAttribute("aria-label", "Ouvrir " + app.name + " dans Safari");
+
+  if (app.embed) {
+    vnote.hidden = true;
+    frame.hidden = false;
+    frame.title = app.name;
+    frame.src = app.url;
+  } else {
+    frame.hidden = true;
+    frame.removeAttribute("src");
+    vnote.hidden = false;
+
+    document.getElementById("vicon").innerHTML = iconFor(app);
+    document.getElementById("vname").textContent = app.name;
+    document.getElementById("vwhy").innerHTML =
+      "Ce site interdit l'affichage dans une page " +
+      "(en-tête <code>X-Frame-Options: SAMEORIGIN</code>). " +
+      "Le navigateur bloque, aucune page web ne peut passer outre.";
+    document.getElementById("vgo").href = app.url;
+  }
+
+  viewer.classList.add("open");
+  viewer.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeApp(){
+  current = null;
+  viewer.classList.remove("open");
+  viewer.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  /* on vide l'iframe après la transition, pour couper le son / la vidéo */
+  setTimeout(() => {
+    if (!viewer.classList.contains("open")) {
+      frame.removeAttribute("src");
+      frame.hidden = true;
+      vnote.hidden = true;
+    }
+  }, 300);
+}
+
+document.getElementById("back").addEventListener("click", closeApp);
+document.getElementById("vback2").addEventListener("click", closeApp);
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && current) closeApp();
+});
+
+/* --- horloge --- */
+
 const clock = document.getElementById("clock");
 
-function tick() {
+function tick(){
   clock.textContent = new Date().toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit"
